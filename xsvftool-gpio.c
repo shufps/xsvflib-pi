@@ -33,7 +33,9 @@
 #include <fcntl.h>
 #include <time.h>
 
-#define BCM2708_PERI_BASE        0x3F000000
+//#define BCM2708_PERI_BASE        0x3F000000
+//#define BCM2708_PERI_BASE        0xfe000000
+unsigned int BCM2708_PERI_BASE = 0x3f000000;
 #define GPIO_BASE                (BCM2708_PERI_BASE + 0x200000) /* GPIO   */
 
 #define PAGE_SIZE (4*1024)
@@ -54,10 +56,10 @@
 
 #define GPIO_IN0   *(gpio+13)  // Reads GPIO input bits 0-31
 
-#define TDI_PIN 24
-#define TMS_PIN 25
-#define TCK_PIN 22
-#define TDO_PIN 23
+#define TDI_PIN 20
+#define TMS_PIN 16
+#define TCK_PIN 12
+#define TDO_PIN 21
 
 int  mem_fd;
 unsigned char *gpio_mem, *gpio_map;
@@ -84,10 +86,11 @@ static void io_setup(void)
 		printf("allocation error \n");
 		exit (-1);
 	}
-	if ((unsigned long)gpio_mem % PAGE_SIZE)
+	if ((unsigned long)gpio_mem % PAGE_SIZE) {
 		gpio_mem += PAGE_SIZE - ((unsigned long)gpio_mem % PAGE_SIZE);
+	}
 
-		gpio_map = (unsigned char *)mmap(
+	gpio_map = (unsigned char *)mmap(
 		(caddr_t)gpio_mem,
 		BLOCK_SIZE,
 		PROT_READ|PROT_WRITE,
@@ -277,6 +280,9 @@ static int h_pulse_tck(struct libxsvf_host *h, int tms, int tdi, int tdo, int rm
 	}
 
 	io_tck(0);
+	for (int i=0;i<60;i++) {
+		asm("nop");
+	}
 	io_tck(1);
 
 	int line_tdo = io_tdo();
@@ -407,6 +413,9 @@ static void help()
 	fprintf(stderr, "\n");
 	fprintf(stderr, "Usage: %s [ -r funcname ] [ -v ... ] [ -L | -B ] { -s svf-file | -x xsvf-file | -c } ...\n", progname);
 	fprintf(stderr, "\n");
+	fprintf(stderr, "   -4\n");
+	fprintf(stderr, "          Use Raspberry Pi 4 base address\n");
+	fprintf(stderr, "\n");
 	fprintf(stderr, "   -r funcname\n");
 	fprintf(stderr, "          Dump C-code for pseudo-allocator based on example files\n");
 	fprintf(stderr, "\n");
@@ -439,10 +448,13 @@ int main(int argc, char **argv)
         sleep_freq.tv_nsec = 5 ;
 
 	progname = argc >= 1 ? argv[0] : "xvsftool";
-	while ((opt = getopt(argc, argv, "r:vLBx:s:c")) != -1)
+	while ((opt = getopt(argc, argv, "r:v4LBx:s:c")) != -1)
 	{
 		switch (opt)
 		{
+		case '4':
+			BCM2708_PERI_BASE = 0xfe000000;
+			break;		
 		case 'r':
 			realloc_name = optarg;
 			break;
