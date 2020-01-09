@@ -280,9 +280,11 @@ static int h_pulse_tck(struct libxsvf_host *h, int tms, int tdi, int tdo, int rm
 	}
 
 	io_tck(0);
+/*	
 	for (int i=0;i<60;i++) {
 		asm("nop");
 	}
+*/	
 	io_tck(1);
 
 	int line_tdo = io_tdo();
