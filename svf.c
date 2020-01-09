@@ -17,7 +17,6 @@
  *  OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *
  */
-
 #include "libxsvf.h"
 
 static int read_command(struct libxsvf_host *h, char **buffer_p, int *len_p)
@@ -461,8 +460,10 @@ int libxsvf_svf(struct libxsvf_host *h)
 						state_run = st;
 					continue;
 				}
+
 				if (*p < '0' || *p > '9')
 					goto syntax_error;
+
 				int number = 0;
 				int exp = 0, expsign = 1;
 				int number_e6, exp_e6;
@@ -470,7 +471,21 @@ int libxsvf_svf(struct libxsvf_host *h)
 					number = number*10 + (*p - '0');
 					p++;
 				}
-				if(*p == 'E' || *p == 'e') {
+					
+				if(*p == '.') {
+					p++;
+					int mul = 1000000;
+					number_e6 = number * mul;
+					mul /= 10;
+					while (*p >= '0' && *p <= '9') {
+						number_e6 += (*p - '0') * mul;
+						mul /= 10;
+						p++;
+					}
+/*					
+					printf("%.3f\n", ((float) number_e6)/1000000.0f);
+*/					
+				} else if(*p == 'E' || *p == 'e') {
 					p++;
 					if(*p == '-') {
 						expsign = -1;
