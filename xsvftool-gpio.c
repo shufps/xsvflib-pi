@@ -331,7 +331,7 @@ static int h_set_frequency(struct libxsvf_host *h, int v)
 	/*sleep_freq.tv_sec = 0 ;
 	sleep_freq.tv_nsec = 500000000L/v ;
 	*/
-	fprintf(stderr, "WARNING: Setting JTAG clock frequency to %d ignored!\n", v);
+//	fprintf(stderr, "WARNING: Setting JTAG clock frequency to %d ignored!\n", v);
 	return 0;
 }
 
